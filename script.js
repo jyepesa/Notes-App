@@ -5,7 +5,7 @@ const deleteBtn = document.getElementById("delete-note");
 const saveBtn = document.getElementById("save-note");
 const noteInput = document.getElementById("note-body");
 
-const notesArray = [];
+let notesArray = [];
 
 function idAssign() {
   let id = 0;
@@ -39,12 +39,14 @@ function createNote() {
     lastUpdate: LastUpdateDate,
     timeStamp: date.getTime(),
   };
+
   notesArray.push(noteObj);
-  notesArray.sort((a, b) => b - a);
+  notesArray.sort((a, b) => b.timeStamp - a.timeStamp);
+  localStorage.setItem("notes", JSON.stringify(notesArray));
   return noteObj;
 }
 
-function createCard({ id, title, content, lastUpdate }) {
+function renderCard({ id, title, content, lastUpdate }) {
   const card = document.createElement("div");
   card.classList.add("card");
   card.setAttribute("data-id", id);
@@ -65,7 +67,22 @@ function createCard({ id, title, content, lastUpdate }) {
   card.appendChild(cardContent);
   card.appendChild(cardDate);
 
-  cardsWrap.prepend(card);
+  return card;
 }
 
-saveBtn.addEventListener("click", () => createCard(createNote()));
+function renderFromStorage() {
+  const notesToRender = localStorage.getItem("notes");
+  if (!notesToRender) {
+    return;
+  } else {
+    notesArray = JSON.parse(notesToRender);
+    notesArray.forEach((note) => {
+      cardsWrap.append(renderCard(note));
+    });
+  }
+}
+
+document.addEventListener("DOMContentLoaded", renderFromStorage);
+saveBtn.addEventListener("click", () => {
+  cardsWrap.prepend(renderCard(createNote()));
+});
