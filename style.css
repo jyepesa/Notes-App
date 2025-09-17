@@ -49,7 +49,7 @@ body {
   height: 1rem;
 }
 
-.cards {
+#cards {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -69,6 +69,11 @@ body {
 
 .card:hover {
   cursor: pointer;
+  background-color: hsl(209, 85%, 95%);
+}
+
+.clicked:hover {
+  cursor: unset;
   background-color: hsl(209, 85%, 95%);
 }
 
