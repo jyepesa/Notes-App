@@ -6,9 +6,13 @@ const saveBtn = document.getElementById("save-note");
 const noteInput = document.getElementById("note-body");
 
 let notesArray = [];
+let alreadyClicked = false;
+let selectedId;
+
+//This function assigns an unassignen ID to new objects
 
 function idAssign() {
-  let id = 0;
+  let id = 1;
   if (notesArray.length < 1) {
     return id;
   }
@@ -18,7 +22,9 @@ function idAssign() {
   return id;
 }
 
-function createNote() {
+// This function creates or updates a note object and saves it in the notesArray and the localStorage
+
+function createNote(id, clicked) {
   if (!noteTitleInput.value || !noteInput.value) {
     alert("Please enter a title and a note");
     return;
@@ -32,19 +38,33 @@ function createNote() {
     date.getSeconds() < 10 ? "0" + date.getSeconds() : date.getSeconds()
   }`;
 
-  const noteObj = {
-    id: idAssign(),
-    title: noteTitleInput.value,
-    content: noteInput.value,
-    lastUpdate: LastUpdateDate,
-    timeStamp: date.getTime(),
-  };
+  let noteObj;
 
+  if (clicked) {
+    notesArray = notesArray.filter((obj) => obj.id !== id);
+    noteObj = {
+      id,
+      title: noteTitleInput.value,
+      content: noteInput.value,
+      lastUpdate: LastUpdateDate,
+      timeStamp: date.getTime(),
+    };
+  } else {
+    noteObj = {
+      id: idAssign(),
+      title: noteTitleInput.value,
+      content: noteInput.value,
+      lastUpdate: LastUpdateDate,
+      timeStamp: date.getTime(),
+    };
+  }
   notesArray.push(noteObj);
   notesArray.sort((a, b) => b.timeStamp - a.timeStamp);
   localStorage.setItem("notes", JSON.stringify(notesArray));
   return noteObj;
 }
+
+//This function renders the note object as a card into the DOM
 
 function renderCard({ id, title, content, lastUpdate }) {
   const card = document.createElement("div");
@@ -67,7 +87,38 @@ function renderCard({ id, title, content, lastUpdate }) {
   card.appendChild(cardContent);
   card.appendChild(cardDate);
 
+  // click handler that takes care of toggling the clicked attribute and making the note editable
+
+  card.addEventListener("click", () => {
+    clickHandler(card);
+  });
+
   return card;
+}
+
+//This function updates already existing cards in the DOM
+
+function updateCardsDOM({ title, content, lastUpdate }) {
+  const clickedElement = document.querySelector(".clicked");
+  clickedElement.childNodes[0].innerText = title;
+  clickedElement.childNodes[1].innerText = content;
+  clickedElement.childNodes[2].innerText = lastUpdate;
+  cardsWrap.prepend(clickedElement);
+  clickedElement.classList.remove("clicked");
+}
+
+function clickHandler(card) {
+  const cards = document.querySelectorAll("[data-id]");
+  for (let element of cards) {
+    if (element.classList.contains("clicked")) {
+      element.classList.remove("clicked");
+    }
+  }
+  card.classList.add("clicked");
+  alreadyClicked = true;
+  selectedId = card.id;
+  noteTitleInput.value = card.childNodes[0].innerText;
+  noteInput.value = card.childNodes[1].innerText;
 }
 
 function renderFromStorage() {
@@ -84,5 +135,13 @@ function renderFromStorage() {
 
 document.addEventListener("DOMContentLoaded", renderFromStorage);
 saveBtn.addEventListener("click", () => {
-  cardsWrap.prepend(renderCard(createNote()));
+  if (!alreadyClicked) {
+    cardsWrap.prepend(renderCard(createNote(selectedId, alreadyClicked)));
+  } else {
+    updateCardsDOM(createNote(selectedId, alreadyClicked));
+  }
+  noteTitleInput.value = "";
+  noteInput.value = "";
+  alreadyClicked = false;
+  console.log(notesArray);
 });
