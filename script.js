@@ -87,8 +87,6 @@ function renderCard({ id, title, content, lastUpdate }) {
   card.appendChild(cardContent);
   card.appendChild(cardDate);
 
-  // click handler that takes care of toggling the clicked attribute and making the note editable
-
   card.addEventListener("click", () => {
     clickHandler(card);
   });
@@ -107,18 +105,52 @@ function updateCardsDOM({ title, content, lastUpdate }) {
   clickedElement.classList.remove("clicked");
 }
 
+// click handler that takes care of toggling the clicked attribute and making the note editable
+
 function clickHandler(card) {
+  removeClicked();
+  card.classList.add("clicked");
+  alreadyClicked = true;
+  selectedId = parseInt(card.getAttribute("data-id"));
+  noteTitleInput.value = card.childNodes[0].innerText;
+  noteInput.value = card.childNodes[1].innerText;
+}
+
+function removeClicked() {
   const cards = document.querySelectorAll("[data-id]");
   for (let element of cards) {
     if (element.classList.contains("clicked")) {
       element.classList.remove("clicked");
     }
   }
-  card.classList.add("clicked");
-  alreadyClicked = true;
-  selectedId = card.id;
-  noteTitleInput.value = card.childNodes[0].innerText;
-  noteInput.value = card.childNodes[1].innerText;
+}
+
+// function assigned to the "write new note" button. Clears both inputs and returns values to default
+
+function writeNewNote() {
+  removeClicked();
+  noteTitleInput.value = "";
+  noteInput.value = "";
+  alreadyClicked = false;
+  selectedId = null;
+}
+
+function deleteNote(id) {
+  if (!alreadyClicked) {
+    noteTitleInput.value = "";
+    noteInput.value = "";
+    alert("Please select a note to delete");
+    return;
+  } else {
+    notesArray = notesArray.filter((card) => id !== card.id);
+    localStorage.setItem("notes", JSON.stringify(notesArray));
+    const elementToRemove = document.querySelector(".clicked");
+    cardsWrap.removeChild(elementToRemove);
+    noteTitleInput.value = "";
+    noteInput.value = "";
+    alreadyClicked = false;
+    selectedId = null;
+  }
 }
 
 function renderFromStorage() {
@@ -143,5 +175,7 @@ saveBtn.addEventListener("click", () => {
   noteTitleInput.value = "";
   noteInput.value = "";
   alreadyClicked = false;
-  console.log(notesArray);
 });
+
+createNoteBtn.addEventListener("click", writeNewNote);
+deleteBtn.addEventListener("click", () => deleteNote(selectedId));
