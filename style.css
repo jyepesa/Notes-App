@@ -136,7 +136,7 @@ body {
   gap: 5px;
 }
 
-.note-buttons > * {
+.right-side-button {
   padding: 0.8rem;
   background-color: var(--primary-color);
   color: var(--chosen-white);
@@ -145,7 +145,7 @@ body {
   border-radius: 4px;
 }
 
-.note-buttons > *:hover {
+.right-side-button:hover {
   cursor: pointer;
   filter: brightness(120%);
 }

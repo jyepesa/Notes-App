@@ -6,12 +6,11 @@ const saveBtn = document.getElementById("save-note");
 const noteInput = document.getElementById("note-body");
 
 let notesArray = [];
-let alreadyClicked = false;
 let selectedId;
 
 //This function assigns an unassignen ID to new objects
 
-function idAssign() {
+function assignId() {
   let id = 1;
   if (notesArray.length < 1) {
     return id;
@@ -22,6 +21,15 @@ function idAssign() {
   return id;
 }
 
+function isAlreadyClicked() {
+  const cards = cardsWrap.querySelectorAll("[data-id]");
+  for (const card of cards) {
+    if (card.classList.contains("clicked")) {
+      return true;
+    }
+  }
+  return false;
+}
 // This function creates or updates a note object and saves it in the notesArray and the localStorage
 
 function createNote(id, clicked) {
@@ -30,7 +38,7 @@ function createNote(id, clicked) {
     return;
   }
   const date = new Date();
-  const LastUpdateDate = `${date.getDate()}.${
+  const lastUpdateDate = `${date.getDate()}.${
     date.getUTCMonth() + 1
   }.${date.getFullYear()}, ${
     date.getHours() < 10 ? "0" + date.getHours() : date.getHours()
@@ -46,15 +54,15 @@ function createNote(id, clicked) {
       id,
       title: noteTitleInput.value,
       content: noteInput.value,
-      lastUpdate: LastUpdateDate,
+      lastUpdate: lastUpdateDate,
       timeStamp: date.getTime(),
     };
   } else {
     noteObj = {
-      id: idAssign(),
+      id: assignId(),
       title: noteTitleInput.value,
       content: noteInput.value,
-      lastUpdate: LastUpdateDate,
+      lastUpdate: lastUpdateDate,
       timeStamp: date.getTime(),
     };
   }
@@ -110,7 +118,6 @@ function updateCardsDOM({ title, content, lastUpdate }) {
 function clickHandler(card) {
   removeClicked();
   card.classList.add("clicked");
-  alreadyClicked = true;
   selectedId = parseInt(card.getAttribute("data-id"));
   noteTitleInput.value = card.childNodes[0].innerText;
   noteInput.value = card.childNodes[1].innerText;
@@ -119,9 +126,7 @@ function clickHandler(card) {
 function removeClicked() {
   const cards = document.querySelectorAll("[data-id]");
   for (let element of cards) {
-    if (element.classList.contains("clicked")) {
-      element.classList.remove("clicked");
-    }
+    element.classList.remove("clicked");
   }
 }
 
@@ -131,12 +136,11 @@ function writeNewNote() {
   removeClicked();
   noteTitleInput.value = "";
   noteInput.value = "";
-  alreadyClicked = false;
   selectedId = null;
 }
 
 function deleteNote(id) {
-  if (!alreadyClicked) {
+  if (!isAlreadyClicked()) {
     noteTitleInput.value = "";
     noteInput.value = "";
     alert("Please select a note to delete");
@@ -148,7 +152,6 @@ function deleteNote(id) {
     cardsWrap.removeChild(elementToRemove);
     noteTitleInput.value = "";
     noteInput.value = "";
-    alreadyClicked = false;
     selectedId = null;
   }
 }
@@ -167,14 +170,13 @@ function renderFromStorage() {
 
 document.addEventListener("DOMContentLoaded", renderFromStorage);
 saveBtn.addEventListener("click", () => {
-  if (!alreadyClicked) {
-    cardsWrap.prepend(renderCard(createNote(selectedId, alreadyClicked)));
+  if (!isAlreadyClicked()) {
+    cardsWrap.prepend(renderCard(createNote(selectedId, isAlreadyClicked())));
   } else {
-    updateCardsDOM(createNote(selectedId, alreadyClicked));
+    updateCardsDOM(createNote(selectedId, isAlreadyClicked()));
   }
   noteTitleInput.value = "";
   noteInput.value = "";
-  alreadyClicked = false;
 });
 
 createNoteBtn.addEventListener("click", writeNewNote);
